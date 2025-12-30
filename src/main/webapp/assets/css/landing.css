@@ -1,0 +1,198 @@
+@charset "UTF-8";
+
+/* ===== LANDING PAGE ===== */
+
+body {
+    background: #fff7eb;
+}
+
+/* HERO */
+.hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+}
+
+.hero-badge {
+    font-size: 14px;
+    color: #ff9800;
+    margin-bottom: 10px;
+}
+
+.hero-title {
+    font-size: 56px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.hero-title span {
+    color: #ff9800;
+}
+
+.hero-subtitle {
+    max-width: 700px;
+    margin: 0 auto 30px;
+    color: #555;
+    font-size: 16px;
+}
+
+.hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* STATS */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.stat-card h3 {
+    color: #ff9800;
+    font-weight: 700;
+}
+
+/* SUCCESS STORIES */
+.stories {
+    background: #fff3e0;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 900px;
+    margin: 40px auto;
+    text-align: center;
+}
+
+/* DAILY KNOWLEDGE */
+.daily-knowledge {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    max-width: 900px;
+    margin: 40px auto 80px;
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.dk-icon {
+    background: #ff9800;
+    color: white;
+    font-size: 28px;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+
+/* =========================
+   ANIMATIONS
+   ========================= */
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+/* Navbar animation */
+.navbar {
+    animation: fadeDown 0.6s ease forwards;
+}
+
+/* Hero section */
+.hero-badge {
+    animation: fadeUp 0.6s ease forwards;
+}
+
+.hero-title {
+    animation: fadeUp 0.7s ease forwards;
+}
+
+.hero-subtitle {
+    animation: fadeUp 0.8s ease forwards;
+}
+
+.hero-actions {
+    animation: fadeUp 0.9s ease forwards;
+}
+
+/* Stats cards stagger */
+.stat-card {
+    opacity: 0;
+    animation: popIn 0.6s ease forwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.2s; }
+.stat-card:nth-child(2) { animation-delay: 0.4s; }
+.stat-card:nth-child(3) { animation-delay: 0.6s; }
+.stat-card:nth-child(4) { animation-delay: 0.8s; }
+
+/* Stories */
+.stories {
+    animation: fadeUp 0.8s ease forwards;
+}
+
+/* Daily knowledge */
+.daily-knowledge {
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards;
+    animation-delay: 0.5s;
+}
+.stat-card,
+.daily-knowledge {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover,
+.daily-knowledge:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 30px rgba(0,0,0,0.08);
+}
+
+/* ===== NOTE PREVIEW ===== */
+.preview-image {
+    transition: filter 0.3s ease;
+}
+
+.preview-image.locked {
+    filter: blur(12px);
+    pointer-events: none;
+}
