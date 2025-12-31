@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="com.notesy.model.NoteDAO, com.notesy.beans.Note" %>
+<%@ page import=" com.notesy.beans.Note" %>
 
 <%
     String id = request.getParameter("noteId");
