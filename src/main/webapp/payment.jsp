@@ -5,10 +5,7 @@
     String id = request.getParameter("noteId");
     Note note = null;
 
-    if (id != null) {
-        NoteDAO dao = new NoteDAO();
-        note = dao.getNoteById(Integer.parseInt(id));
-    }
+ 
 %>
 
 <!DOCTYPE html>

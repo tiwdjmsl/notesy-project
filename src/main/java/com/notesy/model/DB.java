@@ -7,11 +7,12 @@ import java.util.List;
 
 public class DB {
 
-    private String url = "jdbc:mysql://localhost:3306/notesydb?serverTimezone=UTC";
+    private String url = "jdbc:mysql://localhost:3306/notesy_db";
     private String user = "root";
-    private String pass = "root";
+    private String pass = "kali";
     private Connection con;
 
+    
     private void connect() throws Exception {
         Class.forName("com.mysql.cj.jdbc.Driver");
         con = DriverManager.getConnection(url, user, pass);
@@ -34,6 +35,62 @@ public class DB {
         finally { close(); }
         return false;
     }
+    
+ // ================= FEATURED NOTES =================
+    public List<Note> getFeaturedNotes() {
+
+        List<Note> list = new ArrayList<>();
+
+        try {
+            connect();
+            PreparedStatement ps = con.prepareStatement(
+                "SELECT * FROM notes ORDER BY id DESC LIMIT 4"
+            );
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) list.add(mapNote(rs));
+
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+        }
+        finally { 
+            close(); 
+        }
+
+        return list;
+    }
+
+    // ============== EXPLORE NOTE ==================
+    public List<Note> getNotesByCategory(String category) {
+        List<Note> list = new ArrayList<>();
+
+        try {
+        	connect();
+            String sql = "SELECT * FROM notes WHERE category = ?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, category);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Note n = new Note();
+                n.setNoteId(rs.getInt("note_id"));
+                n.setTitle(rs.getString("title"));
+                n.setDescription(rs.getString("description"));
+                n.setCategory(rs.getString("category"));
+                n.setAuthor(rs.getString("author"));
+                n.setPrice(rs.getDouble("price"));
+                n.setPaid(rs.getBoolean("is_paid"));
+                n.setLikes(rs.getInt("likes"));
+                n.setDownloads(rs.getInt("downloads"));
+                list.add(n);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
 
     // ================= ADD NOTE =================
     public void addNote(Note n) {
@@ -50,7 +107,6 @@ public class DB {
             ps.setBoolean(5, n.isPaid());
             ps.setDouble(6, n.getPrice());
             ps.setInt(7, n.getLikes());
-            ps.setInt(8, n.getViews());
             ps.setInt(9, n.getDownloads());
             ps.setString(10, n.getFilePath());
             ps.setString(11, n.getUploader());
@@ -165,7 +221,6 @@ public class DB {
         n.setPaid(rs.getBoolean("paid"));
         n.setPrice(rs.getDouble("price"));
         n.setLikes(rs.getInt("likes"));
-        n.setViews(rs.getInt("views"));
         n.setDownloads(rs.getInt("downloads"));
         n.setFilePath(rs.getString("file_path"));
         n.setUploader(rs.getString("uploader"));

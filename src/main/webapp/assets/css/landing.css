@@ -14,7 +14,7 @@ body {
 
 .hero-badge {
     font-size: 14px;
-    color: #ff9800;
+    color: #eba7dc;
     margin-bottom: 10px;
 }
 
@@ -25,7 +25,7 @@ body {
 }
 
 .hero-title span {
-    color: #ff9800;
+    color: #eba7dc;
 }
 
 .hero-subtitle {
@@ -60,7 +60,7 @@ body {
 }
 
 .stat-card h3 {
-    color: #ff9800;
+    color: #eba7dc;
     font-weight: 700;
 }
 
@@ -88,7 +88,7 @@ body {
 }
 
 .dk-icon {
-    background: #ff9800;
+    background: #eba7dc;
     color: white;
     font-size: 28px;
     padding: 20px;

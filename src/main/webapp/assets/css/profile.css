@@ -59,7 +59,7 @@
 }
 
 .profile-meta a {
-    color: #ff9f1c;
+    color: #eba7dc;
     text-decoration: none;
 }
 
@@ -74,9 +74,9 @@
 }
 
 .profile-right .btn-outline:hover {
-    background: #ff9f1c;
+    background: #eba7dc;
     color: white;
-    border-color: #ff9f1c;
+    border-color: #eba7dc;
 }
 
 /* =========================
@@ -165,7 +165,7 @@
 
 .note-price {
     font-weight: 600;
-    color: #ff9f1c;
+    color: #eba7dc;
 }
 
 .empty-state {

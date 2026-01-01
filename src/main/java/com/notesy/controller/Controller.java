@@ -8,15 +8,13 @@ import javax.servlet.http.*;
 import javax.servlet.*;
 import java.io.*;
 import java.nio.file.Files;
+import java.util.List;
 
 @WebServlet("/Controller")
 public class Controller extends HttpServlet {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private DB db = new DB();
+    private static final long serialVersionUID = 1L;
+    private DB db = new DB();
 
     // ===================== GET REQUESTS =====================
     @Override
@@ -26,7 +24,12 @@ public class Controller extends HttpServlet {
         String page = req.getParameter("page");
         HttpSession session = req.getSession(false);
 
-        if (page == null) {
+        // ---------- HOME / FEATURED NOTES ----------
+        if (page == null || page.equals("home")) {
+
+            List<Note> notes = db.getFeaturedNotes();
+            req.setAttribute("notes", notes);
+
             forward(req, res, "index.jsp");
             return;
         }
@@ -40,15 +43,35 @@ public class Controller extends HttpServlet {
                 break;
 
             // ---------- VIEW MY NOTES ----------
-            case "mynotes":
-                req.setAttribute("notes",
-                        db.getNotesByUser((String) session.getAttribute("user")));
-                forward(req, res, "mynotes.jsp");
+            case "profile":
+                req.setAttribute(
+                    "notes",
+                    db.getNotesByUser((String) session.getAttribute("user"))
+                );
+                forward(req, res, "profile.jsp");
                 break;
 
             // ---------- EXPLORE ----------
             case "explore":
-                req.setAttribute("notes", db.getAllNotes());
+                String category = req.getParameter("category");
+
+                if (category != null && !category.isEmpty()) {
+                    req.setAttribute("notes", db.getNotesByCategory(category));
+                    req.setAttribute("activeCategory", category);
+                } else {
+                    req.setAttribute("notes", db.getAllNotes());
+                    req.setAttribute("activeCategory", "All");
+                }
+
+                forward(req, res, "explore.jsp");
+                break;
+
+
+            // ---------- SEARCH ----------
+            case "search":
+                String keyword = req.getParameter("q");
+                req.setAttribute("notes", db.searchNotes(keyword));
+                req.setAttribute("keyword", keyword);
                 forward(req, res, "explore.jsp");
                 break;
 
@@ -65,18 +88,14 @@ public class Controller extends HttpServlet {
 
             default:
                 forward(req, res, "index.jsp");
-                
-                //----------Search File--------
-            case "search":
-                String keyword = req.getParameter("q");
-                req.setAttribute("notes", db.searchNotes(keyword));
-                req.setAttribute("keyword", keyword);
-                forward(req, res, "explore.jsp");
                 break;
-
+                
+             // ---------- UPLOAD PAGE ----------
+            case "upload":
+                forward(req, res, "upload.jsp");
+                break;
         }
     }
-
 
     // ===================== POST REQUESTS =====================
     @Override
@@ -87,28 +106,30 @@ public class Controller extends HttpServlet {
 
         switch (page) {
 
-            // ---------- LOGIN ----------
             case "login":
                 handleLogin(req, res);
                 break;
 
-            // ---------- REGISTER ----------
             case "register":
                 db.registerUser(
-                        req.getParameter("username"),
-                        req.getParameter("password")
+                    req.getParameter("username"),
+                    req.getParameter("password")
                 );
                 req.setAttribute("message", "Account created — please login.");
                 forward(req, res, "login.jsp");
                 break;
 
-            // ---------- ADD / UPLOAD NOTE ----------
+            // ✅ THIS WAS MISSING
             case "addnote":
                 handleAddNote(req, res);
                 break;
-        }
-    }
 
+            default:
+                res.sendRedirect("Controller?page=home");
+                break;
+        }
+
+    }
 
     // ===================== LOGIN =====================
     private void handleLogin(HttpServletRequest req, HttpServletResponse res)
@@ -126,36 +147,36 @@ public class Controller extends HttpServlet {
         }
     }
 
-
     // ===================== ADD / UPLOAD NOTE =====================
     private void handleAddNote(HttpServletRequest req, HttpServletResponse res)
             throws IOException {
 
+        System.out.println(">>> handleAddNote() CALLED <<<");
+
         Note n = new Note();
 
         n.setTitle(req.getParameter("title"));
-        n.setAuthor(req.getParameter("author"));
-        n.setCategory(req.getParameter("category"));
         n.setDescription(req.getParameter("description"));
+        n.setCategory(req.getParameter("category"));
+        n.setAuthor(req.getParameter("author"));
 
         n.setPaid(Boolean.parseBoolean(req.getParameter("paid")));
         n.setPrice(Double.parseDouble(req.getParameter("price")));
 
-        // default stats
         n.setLikes(0);
-        n.setViews(0);
         n.setDownloads(0);
 
-        // file metadata only (DB stores path)
         n.setFilePath(req.getParameter("filePath"));
-
         n.setUploader((String) req.getSession().getAttribute("user"));
 
         db.addNote(n);
 
-        res.sendRedirect("Controller?page=mynotes");
+        res.sendRedirect("Controller?page=home");
     }
-//----dl purchase---
+
+
+
+    // ===================== DOWNLOAD =====================
     private void handleDownload(HttpServletRequest req, HttpServletResponse res)
             throws IOException, ServletException {
 
@@ -172,21 +193,16 @@ public class Controller extends HttpServlet {
 
         // ---------- PAID NOTE ----------
         if (!db.hasPurchased(user, noteId)) {
-
             req.setAttribute("note", note);
             req.setAttribute("error", "This is a paid note. Please purchase first.");
             forward(req, res, "payment.jsp");
             return;
         }
 
-        // ---------- USER ALREADY PURCHASED ----------
         streamFile(note.getFilePath(), res);
     }
 
-
-
-	
-
+    // ===================== FILE STREAM =====================
     private void streamFile(String path, HttpServletResponse res) throws IOException {
 
         File file = new File(path);
@@ -204,10 +220,6 @@ public class Controller extends HttpServlet {
             }
         }
     }
-
-	
-    
-
 
     // ===================== FORWARD HELPER =====================
     private void forward(HttpServletRequest req, HttpServletResponse res, String page)
