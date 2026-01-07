@@ -1,53 +1,42 @@
-<%@ page import="java.util.List" %>
-<%@ page import="com.notesy.beans.Note" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
-<%
-List<Note> myNotes = (List<Note>) request.getAttribute("myNotes");
-if (myNotes == null) myNotes = java.util.Collections.emptyList();
-%>
+<html>
+<head>
+    <title>My Notes</title>
+</head>
 
-<jsp:include page="/components/navbar.jsp" />
+<body>
 
-<div class="container my-4">
+<h2>My Notes</h2>
 
-<h4 class="fw-bold mb-3">My Notes</h4>
+<c:if test="${empty notes}">
+    <p>You have not uploaded any notes yet.</p>
+</c:if>
 
-<% if (myNotes.isEmpty()) { %>
+<c:forEach var="n" items="${notes}">
+    <div class="note-card" style="border:1px solid #ccc; padding:10px; margin-bottom:10px">
 
-<div class="alert alert-info rounded-4">
-    You haven't uploaded any notes yet.
-    <a href="upload.jsp" class="fw-bold">Upload one now</a>.
-</div>
+        <h3>${n.title}</h3>
+        <p>${n.description}</p>
 
-<% } %>
+        <p>Category: ${n.category}</p>
+        <p>Author: ${n.author}</p>
 
-<div class="row g-4">
+        <p>
+            ${n.isPaid ? 'Paid' : 'Free'}
+            <c:if test="${n.isPaid}">
+                — RM ${n.price}
+            </c:if>
+        </p>
 
-<% for (Note n : myNotes) { %>
+        <p>
+            Views: ${n.views}
+            | Downloads: ${n.downloads}
+        </p>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm rounded-4">
-
-            <img src="${pageContext.request.contextPath}/assets/images/cs.jpg"
-                 class="card-img-top">
-
-            <div class="card-body">
-                <h6 class="fw-bold"><%= n.getTitle() %></h6>
-                <small class="text-muted"><%= n.getCategory() %></small>
-
-                <p class="mt-1 small text-muted">
-                    Views: <%= n.getViews() %> • Downloads: <%= n.getDownloads() %>
-                </p>
-
-                <a class="btn btn-outline-dark w-100"
-                   href="Controller?page=download&noteId=<%= n.getNoteId() %>">
-                   View / Download
-                </a>
-            </div>
-        </div>
     </div>
+</c:forEach>
 
-<% } %>
-
-</div>
-</div>
+</body>
+</html>
