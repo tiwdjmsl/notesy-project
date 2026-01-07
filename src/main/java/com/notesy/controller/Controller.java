@@ -150,6 +150,10 @@ public class Controller extends HttpServlet {
             case "pay":
                 handlePayment(req, res);
                 break;
+            case "deleteNote":
+                handleDeleteNote(req, res);
+                break;
+
                 
 
            
@@ -365,6 +369,32 @@ public class Controller extends HttpServlet {
             }
         }
     }
+        private void handleDeleteNote(HttpServletRequest req, HttpServletResponse res)
+                throws IOException, ServletException {
+
+            HttpSession session = req.getSession(false);
+
+            if (session == null || session.getAttribute("user_id") == null) {
+                res.sendRedirect("login.jsp");
+                return;
+            }
+
+            int userId = (Integer) session.getAttribute("user_id");
+            int noteId = Integer.parseInt(req.getParameter("id"));
+
+            // Optional: prevent deleting other users' notes
+            Note note = db.getNoteById(noteId);
+            if (note == null || note.getUserId() != userId) {
+                res.sendRedirect("Controller?page=profile&tab=my&error=unauthorized");
+                return;
+            }
+
+            db.deleteNote(noteId);
+
+            res.sendRedirect("Controller?page=profile&tab=my&status=deleted");
+        }
+      
+    
 
 
 

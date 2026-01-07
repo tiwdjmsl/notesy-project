@@ -117,6 +117,17 @@
                             <h3>${note.title}</h3>
                             <p>${note.description}</p>
                             <span class="note-price">RM ${note.price}</span>
+                             <!-- DELETE BUTTON -->
+        <form action="Controller?page=deleteNote"
+              method="post"
+              onsubmit="return confirm('Delete this note?');">
+
+            <input type="hidden" name="id" value="${note.noteId}" />
+
+            <button class="btn btn-danger btn-sm" type="submit">
+                Delete
+            </button>
+        </form>
                         </div>
                     </c:forEach>
                 </c:otherwise>
