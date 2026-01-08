@@ -39,11 +39,15 @@
         </li>
 
         <!-- CART -->
-        <li class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="fa-solid fa-cart-shopping"></i>
-            </a>
-        </li>
+        <a href="Controller?page=cart" class="nav-link">
+  <i class="fa fa-cart-shopping"></i>
+
+  <c:if test="${cartCount > 0}">
+    <span class="badge bg-warning text-dark">${cartCount}</span>
+  </c:if>
+
+  Cart
+</a>
 
         <!-- ================= NOT LOGGED IN ================= -->
         <c:if test="${empty sessionScope.user}">
@@ -65,7 +69,7 @@
         <!-- ================= LOGGED IN ================= -->
         <c:if test="${not empty sessionScope.user}">
             <li class="nav-item">
-                <a class="nav-link" href="profile.jsp">
+                <a class="nav-link" href="Controller?page=profile&tab=my">
                     <i class="fa-solid fa-user me-1"></i> Profile
                 </a>
             </li>
@@ -83,3 +87,68 @@
 
     </ul>
 </nav>
+<!-- ==============================
+     NOTESY AI CHATBOT (DEMO)
+     ============================== -->
+
+<!-- Floating Chat Button -->
+<div id="chatbot-btn"
+     style="position:fixed; right:25px; bottom:25px;
+     background:#ffc107; padding:14px 16px; border-radius:50%;
+     box-shadow:0 4px 12px rgba(0,0,0,.2); cursor:pointer;
+     font-size:20px; font-weight:700; z-index:999;">
+🤖
+</div>
+
+<!-- Chat Window -->
+<div id="chatbot-box"
+     style="display:none; position:fixed; right:25px; bottom:95px;
+     width:340px; background:white; border-radius:14px;
+     box-shadow:0 10px 28px rgba(0,0,0,.25); z-index:999;">
+
+  <div style="padding:12px; font-weight:600;
+              background:#f8f9fa; border-radius:14px 14px 0 0;">
+      Notesy AI Assistant
+  </div>
+
+  <div id="chat-messages"
+       style="height:280px; padding:10px; overflow-y:auto; font-size:14px;">
+       <div style="color:#0d6efd"><b>Bot:</b> Hi! I’m Notesy AI 🤖<br>
+       I can help you with uploads, purchases, or browsing notes.</div>
+  </div>
+
+  <div style="padding:10px; display:flex; gap:6px;">
+      <input id="chat-input" class="form-control" placeholder="Ask me anything…">
+      <button id="chat-send" class="btn btn-warning">Send</button>
+  </div>
+</div>
+
+<script>
+const btn = document.getElementById("chatbot-btn");
+const box = document.getElementById("chatbot-box");
+
+btn.onclick = () => {
+  box.style.display = box.style.display === "none" ? "block" : "none";
+};
+
+document.getElementById("chat-send").onclick = async () => {
+  const input = document.getElementById("chat-input");
+  const msgBox = document.getElementById("chat-messages");
+
+  const userMsg = input.value.trim();
+  if (!userMsg) return;
+
+  msgBox.innerHTML += `<div><b>You:</b> ${userMsg}</div>`;
+  input.value = "";
+
+  // Temporary demo response
+ const response = await fetch("Controller?page=chatbot", {
+  method:"POST",
+  headers:{ "Content-Type":"application/x-www-form-urlencoded" },
+  body:"message=" + encodeURIComponent(userMsg)
+});
+const data = await response.json();
+
+msgBox.innerHTML += `<div style='color:#0d6efd'><b>Bot:</b> ${data.reply}</div>`;
+
+</script>

@@ -42,22 +42,34 @@
             <b>Amount:</b> RM <%= amount != null ? amount : "0.00" %>
         </div>
 
-        <!-- Simulated Payment -->
-       <form action="Controller" method="post">
 
-    <input type="hidden" name="page" value="pay">
-    <input type="hidden" name="id" value="<%= noteId %>">
+        <!-- ================= CONFIRM PAYMENT (POST) ================= -->
+        <form action="Controller?page=confirmPayment" method="post">
 
-    <button class="btn btn-success w-100 fw-bold mb-2">
-        ✔ Confirm Payment & Download
+            <input type="hidden" name="id" value="<%= noteId %>">
+            <input type="hidden" name="title" value="<%= title %>">
+            <input type="hidden" name="amount" value="<%= amount %>">
+
+        
+
+    <button class="btn btn-primary w-100">
+        Confirm Payment & Download
     </button>
-
 </form>
 
-        <!-- Cancel -->
+        
+
+
+        <!-- ================= CANCEL (BACK TO CART) ================= -->
+        <a href="Controller?page=cart"
+           class="btn btn-outline-secondary w-100 mt-3">
+            Cancel
+        </a>
+
+        <!-- Optional extra cancel -->
         <a href="Controller?page=explore"
-           class="btn btn-outline-secondary w-100">
-            ✖ Cancel Payment
+           class="btn btn-link w-100 mt-2">
+            ✖ Cancel Payment & Continue Browsing
         </a>
 
     </div>
@@ -66,3 +78,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

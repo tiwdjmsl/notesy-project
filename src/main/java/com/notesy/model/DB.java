@@ -534,6 +534,39 @@ public class DB {
             close();
         }
     }
+ // ================= PURCHASE NOTE (safe — avoids duplicates) =================
+    public boolean purchaseNote(int userId, int noteId) {
+        debug("Purchasing note: user=" + userId + " note=" + noteId);
+
+        PreparedStatement ps = null;
+
+        try {
+            connect();
+
+            // Prevent duplicate purchase
+            String sql =
+                "INSERT IGNORE INTO purchases(user_id, note_id, purchase_date) " +
+                "VALUES (?, ?, NOW())";
+
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, userId);
+            ps.setInt(2, noteId);
+
+            int rows = ps.executeUpdate();
+
+            debug("Purchase result -> " + rows);
+            return rows > 0;   // true = newly purchased, false = already owned
+        }
+        catch (Exception e) {
+            error("Error purchasing note", e);
+            return false;
+        }
+        finally {
+            closeResources(null, ps);
+            close();
+        }
+    }
+
 
     // ================= SEARCH NOTES =================
     public List<Note> searchNotes(String keyword) {
@@ -729,6 +762,119 @@ public class DB {
         }
 
         return total;
+    }
+    public void addToCart(int userId, int noteId) {
+        try {
+            connect();
+
+            String sql =
+                "INSERT INTO cart(user_id, note_id) " +
+                "SELECT ?, ? FROM DUAL " +
+                "WHERE NOT EXISTS (SELECT 1 FROM cart WHERE user_id=? AND note_id=?)";
+
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, userId);
+            ps.setInt(2, noteId);
+            ps.setInt(3, userId);
+            ps.setInt(4, noteId);
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            close();
+        }
+    }
+    public void addFavorite(int userId, int noteId) {
+        try {
+            connect();
+
+            String sql =
+                "INSERT INTO favorites(user_id, note_id) " +
+                "SELECT ?, ? FROM DUAL " +
+                "WHERE NOT EXISTS (SELECT 1 FROM favorites WHERE user_id=? AND note_id=?)";
+
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, userId);
+            ps.setInt(2, noteId);
+            ps.setInt(3, userId);
+            ps.setInt(4, noteId);
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            close();
+        }
+    }
+    public List<Note> getCartItems(int userId) {
+        List<Note> list = new ArrayList<>();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            connect();
+
+            String sql =
+                "SELECT n.* FROM cart c " +
+                "JOIN notes n ON c.note_id = n.note_id " +
+                "WHERE c.user_id = ?";
+
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+
+            while (rs.next()) list.add(mapNote(rs));
+        }
+        catch(Exception e){ e.printStackTrace(); }
+        finally { closeResources(rs, ps); close(); }
+
+        return list;
+    }
+    public void removeFromCart(int userId, int noteId) {
+        try {
+            connect();
+            PreparedStatement ps =
+                con.prepareStatement("DELETE FROM cart WHERE user_id=? AND note_id=?");
+            ps.setInt(1, userId);
+            ps.setInt(2, noteId);
+            ps.executeUpdate();
+        } catch(Exception e){ e.printStackTrace(); }
+        finally { close(); }
+    }
+    public void checkoutCart(int userId) {
+        try {
+            connect();
+
+            // Move to purchases table
+            String insert =
+                "INSERT INTO purchases(user_id, note_id, purchase_date) " +
+                "SELECT user_id, note_id, NOW() FROM cart WHERE user_id=?";
+            PreparedStatement ps1 = con.prepareStatement(insert);
+            ps1.setInt(1, userId);
+            ps1.executeUpdate();
+
+            // Clear cart
+            String clear = "DELETE FROM cart WHERE user_id=?";
+            PreparedStatement ps2 = con.prepareStatement(clear);
+            ps2.setInt(1, userId);
+            ps2.executeUpdate();
+
+        } catch(Exception e){ e.printStackTrace(); }
+        finally { close(); }
+    }
+    public int getCartCount(int userId) {
+        int count = 0;
+        try {
+            connect();
+            PreparedStatement ps =
+                con.prepareStatement("SELECT COUNT(*) FROM cart WHERE user_id=?");
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) count = rs.getInt(1);
+        } catch(Exception e){ e.printStackTrace(); }
+        finally { close(); }
+        return count;
     }
 
 }

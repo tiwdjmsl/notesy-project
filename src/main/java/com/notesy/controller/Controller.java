@@ -1,6 +1,7 @@
 package com.notesy.controller;
 
 import com.notesy.model.DB;
+import com.notesy.services.GeminiChat;
 import com.notesy.beans.Note;
 import com.notesy.beans.User;
 
@@ -57,13 +58,20 @@ public class Controller extends HttpServlet {
                 break;
                 
             case "payment":
-                int noteId = Integer.parseInt(req.getParameter("id"));
-                Note notePay = db.getNoteById(noteId);
+                String idParam = req.getParameter("id");
+                if (idParam != null) {
+                    int noteId = Integer.parseInt(idParam);
+                    Note note = db.getNoteById(noteId);
+                    req.setAttribute("note", note);
+                }
 
-                req.setAttribute("note", notePay);
                 forward(req, res, "payment.jsp");
                 break;
 
+
+            case "cart":
+                showCart(req, res);
+                break;
 
     
             case "search":
@@ -153,6 +161,59 @@ public class Controller extends HttpServlet {
             case "deleteNote":
                 handleDeleteNote(req, res);
                 break;
+            case "addToCart":
+                handleAddToCart(req, res);
+                break;
+
+            case "addFavorite":
+                handleAddFavorite(req, res);
+                break;
+            case "removeCart":
+                handleRemoveCart(req, res);
+                break;
+
+            case "checkout":
+                handleCheckout(req, res);
+                break;
+            case "fakecheckout":
+                showFakeCheckout(req, res);
+                break;
+            case "confirmPayment":
+                handleConfirmPayment(req, res);
+                break;
+            case "chatbot": {
+
+                String userMsg = req.getParameter("message");
+
+                // 1️⃣ Get notes from DB
+                List<Note> notes = db.getAllNotes(); // or getFeaturedNotes()
+
+                // 2️⃣ Build context string
+                StringBuilder context = new StringBuilder();
+                context.append("Available notes on Notesy:\n");
+
+                for (Note n : notes) {
+                    context.append("- ")
+                           .append(n.getTitle())
+                           .append(" (")
+                           .append(n.getCategory())
+                           .append(", RM ")
+                           .append(n.getPrice())
+                           .append(")\n");
+                }
+
+                // 3️⃣ Send BOTH context + user message to Gemini
+                String reply = GeminiChat.ask(userMsg, context.toString());
+
+                res.setContentType("text/plain");
+                res.getWriter().write(reply);
+                break;
+            }
+
+
+
+
+
 
                 
 
@@ -288,23 +349,21 @@ public class Controller extends HttpServlet {
 
         String idParam = req.getParameter("id");
 
-        if (idParam == null) {
-            req.setAttribute("error", "Note not found.");
-            forward(req, res, "download.jsp");
+        if (idParam == null || idParam.isEmpty()) {
+            res.sendRedirect("Controller?page=cart");
             return;
         }
 
-        int id = Integer.parseInt(idParam);
-        Note note = db.getNoteById(id);
+        int noteId = Integer.parseInt(idParam);
+        Note note = db.getNoteById(noteId);
 
         if (note == null) {
-            req.setAttribute("error", "Note not found.");
-            forward(req, res, "download.jsp");
+            res.sendRedirect("Controller?page=cart");
             return;
         }
 
         req.setAttribute("note", note);
-        forward(req, res, "download.jsp");
+        req.getRequestDispatcher("download.jsp").forward(req, res);
     }
 
     private void handlePayment(HttpServletRequest req, HttpServletResponse res)
@@ -321,7 +380,8 @@ public class Controller extends HttpServlet {
         int noteId = Integer.parseInt(req.getParameter("id"));
 
         // 🟢 Record purchase in DB
-        db.recordPurchase(userId, noteId);
+        db.purchaseNote(userId, noteId);
+
 
         System.out.println("PAYMENT SUCCESS → recorded purchase for user " + userId);
 
@@ -393,7 +453,151 @@ public class Controller extends HttpServlet {
 
             res.sendRedirect("Controller?page=profile&tab=my&status=deleted");
         }
-      
+        private void handleAddToCart(HttpServletRequest req, HttpServletResponse res)
+                throws IOException {
+
+            HttpSession s = req.getSession(false);
+            if (s == null || s.getAttribute("user_id") == null) {
+                res.sendRedirect("login.jsp");
+                return;
+            }
+
+            int userId = (Integer) s.getAttribute("user_id");
+            int noteId = Integer.parseInt(req.getParameter("id"));
+
+            db.addToCart(userId, noteId);
+
+            res.sendRedirect("Controller?page=explore&status=added_to_cart");
+        }
+        private void handleAddFavorite(HttpServletRequest req, HttpServletResponse res)
+                throws IOException {
+
+            HttpSession s = req.getSession(false);
+            if (s == null || s.getAttribute("user_id") == null) {
+                res.sendRedirect("login.jsp");
+                return;
+            }
+
+            int userId = (Integer) s.getAttribute("user_id");
+            int noteId = Integer.parseInt(req.getParameter("id"));
+
+            db.addFavorite(userId, noteId);
+
+            res.sendRedirect("Controller?page=explore&status=favorited");
+        }
+        private void showCart(HttpServletRequest req, HttpServletResponse res)
+                throws ServletException, IOException {
+
+            HttpSession s = req.getSession(false);
+            if (s == null || s.getAttribute("user_id") == null) {
+                res.sendRedirect("login.jsp");
+                return;
+            }
+
+            int userId = (Integer) s.getAttribute("user_id");
+
+            req.setAttribute("cartItems", db.getCartItems(userId));
+            forward(req, res, "cart.jsp");
+        }
+        private void handleRemoveCart(HttpServletRequest req, HttpServletResponse res)
+                throws IOException {
+
+            int userId = (Integer) req.getSession().getAttribute("user_id");
+            int noteId = Integer.parseInt(req.getParameter("id"));
+
+            db.removeFromCart(userId, noteId);
+
+            res.sendRedirect("Controller?page=cart&status=removed");
+        }
+        private void handleCheckout(HttpServletRequest req, HttpServletResponse res)
+                throws IOException, ServletException {
+
+            HttpSession s = req.getSession(false);
+            if (s == null || s.getAttribute("user_id") == null) {
+                res.sendRedirect("login.jsp");
+                return;
+            }
+
+            int userId = (Integer) s.getAttribute("user_id");
+
+            // load cart items
+            List<Note> cart = db.getCartItems(userId);
+
+            double total = 0;
+            for (Note n : cart) total += n.getPrice();
+
+            req.setAttribute("cartItems", cart);
+            req.setAttribute("total", total);
+
+            // 👉 send user to payment.jsp
+            req.getRequestDispatcher("payment.jsp").forward(req, res);
+        }
+        private void showFakeCheckout(HttpServletRequest req, HttpServletResponse res)
+                throws ServletException, IOException {
+
+            HttpSession s = req.getSession(false);
+            int userId = (Integer) s.getAttribute("user_id");
+
+            req.setAttribute("cartItems", db.getCartItems(userId));
+            req.getRequestDispatcher("fakecheckout.jsp").forward(req, res);
+        }
+        private void handleConfirmPayment(HttpServletRequest req, HttpServletResponse res)
+                throws IOException {
+
+            HttpSession session = req.getSession(false);
+            int userId = (int) session.getAttribute("user_id");
+
+            String mode = req.getParameter("mode");
+
+            if ("cart".equals(mode)) {
+
+                // 🟢 Purchase everything in cart
+                List<Note> cart = db.getCartItems(userId);
+                for (Note n : cart) {
+                    db.purchaseNote(userId, n.getNoteId());
+                }
+
+                // Clear cart after purchase
+                db.checkoutCart(userId);
+
+                res.sendRedirect("Controller?page=profile&tab=purchased");
+                return;
+            }
+
+            // 🟢 Single-note purchase
+            int noteId = Integer.parseInt(req.getParameter("id"));
+            db.purchaseNote(userId, noteId);
+
+            res.sendRedirect("Controller?page=download&id=" + noteId);
+        }
+        @WebServlet("/chatbot")
+        public class ChatbotServlet extends HttpServlet {
+
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			protected void doPost(HttpServletRequest req, HttpServletResponse res)
+                    throws IOException {
+
+                String userMsg = req.getParameter("message");
+                res.setContentType("application/json");
+
+                // TODO: Replace with real AI API call
+                String reply = "AI Reply: You asked — " + userMsg;
+
+                res.getWriter().write("{\"reply\":\"" + reply + "\"}");
+            }
+        }
+        public class ChatbotService {
+            public static String askGemini(String msg) {
+                return "Demo reply: You asked — " + msg;
+            }
+        }
+
+
+
     
 
 

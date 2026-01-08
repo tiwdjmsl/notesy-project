@@ -1,104 +1,107 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Notesy | Home</title>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/custom.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing.css">
-</head>
-
-<body class="bg-light">
-
-<!-- NAVBAR -->
 <jsp:include page="components/navbar.jsp"/>
 
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<!-- ================= HERO SECTION ================= -->
-<section class="hero">
-    <p class="hero-badge">⭐ Join 50,000+ students sharing knowledge</p>
+<div class="container mt-5">
 
-    <h1 class="hero-title">
-        Share Your Notes, <span>Grow Together</span>
-    </h1>
+    <h2 class="fw-bold mb-4">
+        🛒 My Cart
+    </h2>
 
-    <p class="hero-subtitle">
-        The ultimate marketplace for students to buy, sell, and share study notes.
-        Turn your hard work into earnings while helping others succeed.
-    </p>
+    <!-- EMPTY CART -->
+    <c:if test="${empty cartItems}">
+        <div class="text-center p-5 bg-light rounded shadow-sm">
+            <i class="fa fa-cart-arrow-down fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Your cart is empty</h5>
 
-    <div class="hero-actions">
-        <a href="explore.jsp" class="btn btn-warning btn-lg">Start Browsing →</a>
-        <a href="upload.jsp" class="btn btn-outline-dark btn-lg">Upload Notes</a>
-    </div>
-</section>
-
-
-<!-- ================= STATS ================= -->
-<section class="stats">
-    <div class="stat-card"><h3>7,000+</h3><p>Notes Shared</p></div>
-    <div class="stat-card"><h3>5,000+</h3><p>Active Students</p></div>
-    <div class="stat-card"><h3>500+</h3><p>Downloads</p></div>
-    <div class="stat-card"><h3>2,500+</h3><p>5-Star Reviews</p></div>
-</section>
-
-
-<!-- ================= FEATURED NOTES ================= -->
-<section class="container my-5">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold">Featured Notes</h2>
-            <p class="text-muted mb-0">Handpicked quality notes from top contributors</p>
+            <a href="Controller?page=explore" class="btn btn-primary mt-3">
+                Browse Notes
+            </a>
         </div>
-    </div>
-
-    <c:if test="${empty featuredNotes}">
-        <p class="text-muted">No featured notes available.</p>
     </c:if>
 
-    <div class="row g-4">
-        <c:forEach var="n" items="${featuredNotes}">
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm border-0 rounded-4">
+    <!-- CART LIST -->
+    <c:if test="${not empty cartItems}">
 
-                    <img src="assets/uploads/g1.png"
-                         class="card-img-top rounded-top-4">
+        <div class="row">
+            <div class="col-lg-8">
 
-                    <span class="badge bg-${n.price > 0 ? 'danger' : 'success'} position-absolute top-0 end-0 m-3">
-                        ${n.price > 0 ? 'Paid' : 'Free'}
-                    </span>
+                <c:set var="total" value="0" />
 
-                    <div class="card-body">
-                        <h6 class="fw-bold">${n.title}</h6>
-                        <p class="text-muted small">${n.description}</p>
-                        <small class="text-secondary">Uploaded by User #${n.userId}</small>
+                <c:forEach var="n" items="${cartItems}">
+                    <c:set var="total" value="${total + n.price}" />
+
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body d-flex justify-content-between">
+
+                            <div>
+                                <h5 class="mb-1">${n.title}</h5>
+                                <span class="text-muted small">${n.category}</span>
+                                <div class="fw-bold mt-1">RM ${n.price}</div>
+                            </div>
+
+                            <form action="Controller?page=removeCart" method="post">
+                                <input type="hidden" name="id" value="${n.noteId}">
+                                <button class="btn btn-outline-danger btn-sm">
+                                    <i class="fa fa-trash"></i> Remove
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+                </c:forEach>
+
+            </div>
+
+            <!-- SUMMARY PANEL -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm p-3 sticky-top" style="top: 100px;">
+                    <h5 class="fw-bold mb-3">Order Summary</h5>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Items</span>
+                        <span>${fn:length(cartItems)}</span>
                     </div>
 
+                    <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-2">
+                        <span>Total</span>
+                        <span>RM ${total}</span>
+                    </div>
+<c:forEach var="item" items="${cartItems}">
+    <form action="Controller" method="get">
+        <input type="hidden" name="page" value="open_download">
+        <input type="hidden" name="id" value="${item.noteId}">
+        <button class="btn btn-success">
+            Checkout
+        </button>
+    </form>
+</c:forEach>
+
+
+
+
+
+                    <a href="Controller?page=explore"
+                       class="btn btn-outline-secondary w-100 mt-2">
+                        Continue Shopping
+                    </a>
                 </div>
             </div>
-        </c:forEach>
-    </div>
-</section>
+        </div>
+    </c:if>
 
+</div>
 
-<!-- FOOTER -->
-<jsp:include page="components/footer.jsp" />
-
-
-<!-- =========================================================
-     AI CHATBOT (HIDDEN UNTIL BUTTON CLICK)
-========================================================= -->
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</script>
 <c:if test="${not empty sessionScope.user}">
     
 <!-- Floating Button -->
@@ -108,7 +111,7 @@
 <div id="chatContainer" class="chat-window hidden">
 
     <div class="chat-header">
-         Notesy Bot
+        Notesy Bot
         <span id="closeChat" class="close-btn">×</span>
     </div>
 
@@ -203,12 +206,3 @@ function addTyping(){
 </script>
 
 </c:if>
-
-
-
-
-<!-- Bootstrap -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-</html>
