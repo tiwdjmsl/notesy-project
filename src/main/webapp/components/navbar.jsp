@@ -1,6 +1,47 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<c:set var="currentPage" value="${param.page}" />
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      rel="stylesheet">
+
+<style>
+/* ===== NAV LINK BASE ===== */
+.nav-link {
+    color: #444;
+    padding: 8px 16px;
+    border-radius: 999px;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ===== ACTIVE (PINK) ===== */
+.nav-link.active {
+    background-color: #fde7f3;
+    color: #e054a8 !important;
+    font-weight: 600;
+}
+
+/* ===== HOVER ===== */
+.nav-link:hover {
+    background-color: #fff0fa;
+    color: #e054a8;
+}
+
+/* ===== CART BADGE ===== */
+.cart-badge {
+    background: #ffcc00;
+    color: #000;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 50%;
+    margin-left: 4px;
+}
+</style>
+
 <nav class="navbar navbar-expand-lg px-4 py-3"
      style="background:#fff6fb; border-bottom:1px solid #f3d7ea;">
 
@@ -16,77 +57,84 @@
     </a>
 
     <!-- RIGHT MENU -->
-    <ul class="navbar-nav ms-auto align-items-center gap-3">
+    <ul class="navbar-nav ms-auto align-items-center gap-2">
 
+        <!-- HOME -->
         <li class="nav-item">
-            <a class="nav-link px-3 rounded-pill"
-               href="Controller?page=home"
-               style="background:#fde7f3; color:#e054a8;">
-                <i class="fa-solid fa-book-open me-1"></i> Home
+            <a class="nav-link ${currentPage == 'home' || empty currentPage ? 'active' : ''}"
+               href="Controller?page=home">
+                <i class="fa-solid fa-house"></i> Home
             </a>
         </li>
 
+        <!-- EXPLORE -->
         <li class="nav-item">
-            <a class="nav-link" href="Controller?page=explore">
-                <i class="fa-solid fa-magnifying-glass me-1"></i> Explore
+            <a class="nav-link ${currentPage == 'explore' ? 'active' : ''}"
+               href="Controller?page=explore">
+                <i class="fa-solid fa-magnifying-glass"></i> Explore
             </a>
         </li>
 
+        <!-- UPLOAD -->
         <li class="nav-item">
-            <a class="nav-link" href="Controller?page=upload">
-                <i class="fa-solid fa-upload me-1"></i> Upload
+            <a class="nav-link ${currentPage == 'upload' ? 'active' : ''}"
+               href="Controller?page=upload">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Upload
             </a>
         </li>
 
         <!-- CART -->
-        <a href="Controller?page=cart" class="nav-link">
-  <i class="fa fa-cart-shopping"></i>
+        <li class="nav-item">
+            <a class="nav-link ${currentPage == 'cart' ? 'active' : ''}"
+               href="Controller?page=cart">
+                <i class="fa-solid fa-cart-shopping"></i> Cart
+                <c:if test="${cartCount > 0}">
+                    <span class="cart-badge">${cartCount}</span>
+                </c:if>
+            </a>
+        </li>
 
-  <c:if test="${cartCount > 0}">
-    <span class="badge bg-warning text-dark">${cartCount}</span>
-  </c:if>
-
-  Cart
-</a>
-
-        <!-- ================= NOT LOGGED IN ================= -->
+        <!-- ===== NOT LOGGED IN ===== -->
         <c:if test="${empty sessionScope.user}">
             <li class="nav-item">
-                <a class="nav-link" href="login.jsp">
+                <a class="nav-link"
+                   href="login.jsp">
                     <i class="fa-solid fa-right-to-bracket"></i> Login
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="btn rounded-pill px-3"
+                <a class="nav-link"
                    href="register.jsp"
-                   style="background:#eba7dc; color:#000;">
+                   style="background:#eba7dc;color:#000;">
                     Register
                 </a>
             </li>
         </c:if>
 
-        <!-- ================= LOGGED IN ================= -->
-        <c:if test="${not empty sessionScope.user}">
-            <li class="nav-item">
-                <a class="nav-link" href="Controller?page=profile&tab=my">
-                    <i class="fa-solid fa-user me-1"></i> Profile
-                </a>
-            </li>
-
-            <li class="nav-item text-muted">
+        <!-- ===== LOGGED IN ===== -->
+        <li class="nav-item text-muted small">
                 Hi, <strong>${sessionScope.user}</strong>
             </li>
-
+   <c:if test="${not empty sessionScope.user}">
             <li class="nav-item">
-                <a class="nav-link" href="Controller?page=logout">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                <a class="nav-link ${currentPage == 'profile' ? 'active' : ''}"
+                   href="Controller?page=profile&tab=my">
+                    <i class="fa-solid fa-user"></i> Profile
                 </a>
             </li>
         </c:if>
+            <li class="nav-item">
+                <a class="nav-link"
+                   href="Controller?page=logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </li>
+        
 
     </ul>
 </nav>
+
 <!-- ==============================
      NOTESY AI CHATBOT (DEMO)
      ============================== -->

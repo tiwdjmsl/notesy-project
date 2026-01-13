@@ -8,8 +8,13 @@ import com.notesy.beans.User;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.servlet.*;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -42,7 +47,7 @@ public class Controller extends HttpServlet {
 
             case "logout":
                 if (session != null) session.invalidate();
-                forward(req, res, "logout.jsp");
+                forward(req, res, "index.jsp");
                 break;
 
             case "upload":
@@ -108,6 +113,10 @@ public class Controller extends HttpServlet {
 
                 req.setAttribute("statsNotes", uploadedCount);
                 req.setAttribute("statsSales", totalSales);
+                String tab = req.getParameter("tab");
+                if (tab == null) tab = "my";
+                req.setAttribute("tab", tab);
+
 
                 forward(req, res, "profile.jsp");
                 break;
@@ -209,17 +218,7 @@ public class Controller extends HttpServlet {
                 res.getWriter().write(reply);
                 break;
             }
-
-
-
-
-
-
-                
-
-           
-
-            
+  
 
             default:
                 forward(req, res, "index.jsp");
@@ -230,6 +229,13 @@ public class Controller extends HttpServlet {
     // ===================== LOGIN =====================
     private void handleLogin(HttpServletRequest req, HttpServletResponse res)
             throws IOException, ServletException {
+    	String captcha = req.getParameter("g-recaptcha-response");
+
+    	if (captcha == null || !verifyCaptcha(captcha)) {
+    	    req.setAttribute("error", "Please verify that you are not a robot.");
+    	    forward(req, res, "login.jsp");
+    	    return;
+    	}
 
         String username = req.getParameter("username");
         String password = req.getParameter("password");
@@ -238,7 +244,7 @@ public class Controller extends HttpServlet {
         	User u = db.getUserByUsername(username);
             req.getSession().setAttribute("user", username);
             req.getSession().setAttribute("user_id", u.getUserId());
-            forward(req, res, "profile.jsp");
+            res.sendRedirect("Controller?page=home");
         } else {
             req.setAttribute("error", "Invalid username or password");
             forward(req, res, "login.jsp");
@@ -595,6 +601,33 @@ public class Controller extends HttpServlet {
                 return "Demo reply: You asked — " + msg;
             }
         }
+        
+        private boolean verifyCaptcha(String captchaResponse) {
+            try {
+                String secret = "6LfkMkQsAAAAAN-pC6WoUvlHw6ROZD6NgJjY-mbK";
+
+                URL url = new URL("https://www.google.com/recaptcha/api/siteverify");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+
+                String params = "secret=" + secret + "&response=" + captchaResponse;
+
+                try (OutputStream os = con.getOutputStream()) {
+                    os.write(params.getBytes());
+                }
+
+                JsonReader reader = Json.createReader(con.getInputStream());
+                JsonObject json = reader.readObject();
+
+                return json.getBoolean("success");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
 
 
 

@@ -13,8 +13,252 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/custom.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing.css">
+    <style>
+    
+/* HERO */
+.hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+}
+
+.hero-badge {
+    font-size: 14px;
+    color: #eba7dc;
+    margin-bottom: 10px;
+}
+
+.hero-title {
+    font-size: 56px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.hero-title span {
+    color: #eba7dc;
+}
+
+.hero-subtitle {
+    max-width: 700px;
+    margin: 0 auto 30px;
+    color: #555;
+    font-size: 16px;
+}
+
+.hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* STATS */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.stat-card h3 {
+    color: #eba7dc;
+    font-weight: 700;
+}
+
+/* SUCCESS STORIES */
+.stories {
+    background: #eba7dc;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 900px;
+    margin: 40px auto;
+    text-align: center;
+}
+
+/* DAILY KNOWLEDGE */
+.daily-knowledge {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    max-width: 900px;
+    margin: 40px auto 80px;
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.dk-icon {
+    background: #eba7dc;
+    color: white;
+    font-size: 28px;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+
+/* =========================
+   ANIMATIONS
+   ========================= */
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+/* Navbar animation */
+.navbar {
+    animation: fadeDown 0.6s ease forwards;
+}
+
+/* Hero section */
+.hero-badge {
+    animation: fadeUp 0.6s ease forwards;
+}
+
+.hero-title {
+    animation: fadeUp 0.7s ease forwards;
+}
+
+.hero-subtitle {
+    animation: fadeUp 0.8s ease forwards;
+}
+
+.hero-actions {
+    animation: fadeUp 0.9s ease forwards;
+}
+
+/* Stats cards stagger */
+.stat-card {
+    opacity: 0;
+    animation: popIn 0.6s ease forwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.2s; }
+.stat-card:nth-child(2) { animation-delay: 0.4s; }
+.stat-card:nth-child(3) { animation-delay: 0.6s; }
+.stat-card:nth-child(4) { animation-delay: 0.8s; }
+
+/* Stories */
+.stories {
+    animation: fadeUp 0.8s ease forwards;
+}
+
+/* Daily knowledge */
+.daily-knowledge {
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards;
+    animation-delay: 0.5s;
+}
+.stat-card,
+.daily-knowledge {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover,
+.daily-knowledge:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 30px rgba(0,0,0,0.08);
+}
+
+/* ===== NOTE PREVIEW ===== */
+.preview-image {
+    transition: filter 0.3s ease;
+}
+
+.preview-image.locked {
+    filter: blur(12px);
+    pointer-events: none;
+}
+    /* Remove link styling */
+.note-card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Card hover animation */
+.note-card {
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.note-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+
+/* Thumbnail */
+.note-thumb {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+    border-radius: 16px 16px 0 0;
+}
+
+.note-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Price badge */
+.badge-price {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-price.paid {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-price.free {
+    background: #198754;
+    color: white;
+}
+    
+    </style>
 </head>
 
 <body class="bg-light">
@@ -37,7 +281,7 @@
     </p>
 
     <div class="hero-actions">
-        <a href="explore.jsp" class="btn btn-warning btn-lg">Start Browsing →</a>
+        <a href="Controller?page=explore" class="btn btn-warning btn-lg" style="background: #eba7dc; border: #000;">Start Browsing →</a>
         <a href="upload.jsp" class="btn btn-outline-dark btn-lg">Upload Notes</a>
     </div>
 </section>
@@ -67,26 +311,43 @@
     </c:if>
 
     <div class="row g-4">
-        <c:forEach var="n" items="${featuredNotes}">
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm border-0 rounded-4">
+       <c:forEach var="n" items="${featuredNotes}">
+    <div class="col-md-6 col-lg-3">
 
-                    <img src="assets/uploads/g1.png"
-                         class="card-img-top rounded-top-4">
+        <a href="Controller?page=open_download&id=${n.noteId}"
+           class="note-card-link">
 
-                    <span class="badge bg-${n.price > 0 ? 'danger' : 'success'} position-absolute top-0 end-0 m-3">
+            <div class="card note-card h-100 shadow-sm border-0 rounded-4">
+
+                <!-- Thumbnail -->
+                <div class="note-thumb">
+                    <img src="${pageContext.request.contextPath}/${n.picture}"
+                         onerror="this.src='${pageContext.request.contextPath}/assets/images/default.jpg'">
+
+                    <!-- Paid / Free badge -->
+                    <span class="badge badge-price ${n.price > 0 ? 'paid' : 'free'}">
                         ${n.price > 0 ? 'Paid' : 'Free'}
                     </span>
-
-                    <div class="card-body">
-                        <h6 class="fw-bold">${n.title}</h6>
-                        <p class="text-muted small">${n.description}</p>
-                        <small class="text-secondary">Uploaded by User #${n.userId}</small>
-                    </div>
-
                 </div>
+
+                <div class="card-body">
+                    <h6 class="fw-bold mb-1">${n.title}</h6>
+
+                    <p class="text-muted small mb-2">
+                        ${n.description}
+                    </p>
+
+                    <small class="text-secondary">
+                        Uploaded by User #${n.userId}
+                    </small>
+                </div>
+
             </div>
-        </c:forEach>
+        </a>
+
+    </div>
+</c:forEach>
+
     </div>
 </section>
 

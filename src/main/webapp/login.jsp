@@ -2,6 +2,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en">
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
 <head>
     <title>Notesy | Login</title>
 
@@ -160,7 +162,11 @@
                                    required>
                         </div>
                     </div>
-
+<!-- ✅ reCAPTCHA -->
+    <div class="mb-3">
+        <div class="g-recaptcha"
+             data-sitekey="6LfkMkQsAAAAAEKhp0ymUhHwyX2kK678aJhHLLfC"></div>
+             
                     <c:if test="${not empty error}">
                         <p class="text-danger">${error}</p>
                     </c:if>

@@ -1,5 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -17,159 +19,266 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/custom.css">
 </head>
+<style>
+/* ===== NOTE PREVIEW ===== */
+.preview-image {
+    transition: filter 0.3s ease;
+}
+
+.preview-image.locked {
+    filter: blur(12px);
+    pointer-events: none;
+}
+    /* Remove link styling */
+.note-card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Card hover animation */
+.note-card {
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.note-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+
+/* Thumbnail */
+.note-thumb {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+    border-radius: 16px 16px 0 0;
+}
+
+.note-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Price badge */
+.badge-price {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-price.paid {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-price.free {
+    background: #198754;
+    color: white;
+}
+.subject-list li a {
+    display: block;
+    padding: 8px 10px;
+    color: #333;
+    text-decoration: none;
+    border-radius: 8px;
+}
+
+.subject-list li a:hover {
+    background: #f3e8ff;
+    color: #6a1b9a;
+}
+
+.note-thumb {
+    height: 160px;
+    overflow: hidden;
+    border-radius: 16px 16px 0 0;
+}
+
+.note-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.note-category {
+    font-size: 12px;
+    background: #f2e6fa;
+    color: #6a1b9a;
+    padding: 4px 10px;
+    border-radius: 20px;
+    width: fit-content;
+    margin-bottom: 6px;
+}
+
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const toastEl = document.getElementById("cartToast");
+    if (toastEl) {
+        const toast = new bootstrap.Toast(toastEl, {
+            delay: 2500   // ⏱ disappears after 2.5 seconds
+        });
+        toast.show();
+    }
+});
+</script>
 
 <body class="bg-light">
 
 
 <!-- 🔔 ADDED TO CART TOAST -->
 <c:if test="${param.status == 'added_to_cart'}">
-<div class="toast-container position-fixed top-0 end-0 p-3">
-  <div class="toast show bg-success text-white">
-    <div class="toast-body">
-      Added to cart successfully!
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="cartToast"
+         class="toast align-items-center text-bg-success border-0"
+         role="alert"
+         aria-live="assertive"
+         aria-atomic="true">
+
+        <div class="d-flex">
+            <div class="toast-body">
+                ✅ Added to cart successfully!
+            </div>
+            <button type="button"
+                    class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast">
+            </button>
+        </div>
+
     </div>
-  </div>
 </div>
 </c:if>
+
 
 
 <!-- NAVBAR -->
 <jsp:include page="components/navbar.jsp" />
 
 <!-- ===== MAIN AREA ===== -->
-<main class="col-md-9 col-lg-10" style="width: 90%; margin:30px;">
+<main class="container-fluid my-4">
 
-    <!-- SEARCH -->
-    <div class="d-flex justify-content-between align-items-center mb-4" style="margin: 30px;">
-        <form action="Controller" method="get" class="d-flex w-50">
-            <input type="hidden" name="page" value="search">
+    <div class="row">
 
-            <input class="form-control" name="q"
-                   placeholder="Search notes, subjects, authors..."
-                   value="${keyword}">
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="col-md-3 col-lg-2 mb-4">
 
-            <button class="btn btn-primary ms-2">
-                <i class="fa fa-search"></i>
-            </button>
-        </form>
+            <div class="subject-card shadow-sm rounded-4 p-3 bg-white">
+                <h6 class="fw-bold mb-3">Subjects</h6>
 
-        <div class="d-flex gap-2">
-            <select class="form-select">
-                <option>Most Popular</option>
-                <option>Newest</option>
-                <option>Price: Low to High</option>
-            </select>
-            <button class="btn btn-warning">
-                <i class="fa-solid fa-grip"></i>
-            </button>
-            <button class="btn btn-outline-secondary">
-                <i class="fa-solid fa-list"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- ===== SUBJECT SIDEBAR ===== -->
-    <div class="col-md-3" style="width: 100%;">
-        <aside class="col-md-3 col-lg-2">
-            <div class="subject-card">
-                <h6 class="subject-title">Subjects</h6>
-
-                <ul class="subject-list">
-                    <li class="${empty param.category ? 'active' : ''}">
-                        <a href="Controller?page=explore">All Subjects</a>
-                    </li>
-
-                    <li class="${param.category == 'Mathematics' ? 'active' : ''}">
-                        <a href="Controller?page=explore&category=Mathematics">Mathematics</a>
-                    </li>
-
-                    <li class="${param.category == 'Physics' ? 'active' : ''}">
-                        <a href="Controller?page=explore&category=Physics">Physics</a>
-                    </li>
-
-                    <li class="${param.category == 'Chemistry' ? 'active' : ''}">
-                        <a href="Controller?page=explore&category=Chemistry">Chemistry</a>
-                    </li>
-
-                    <li class="${param.category == 'Computer Science' ? 'active' : ''}">
-                        <a href="Controller?page=explore&category=Computer%20Science">
-                            Computer Science
-                        </a>
-                    </li>
+                <ul class="list-unstyled subject-list">
+                    <li><a href="Controller?page=explore">All Subjects</a></li>
+                    <li><a href="Controller?page=explore&category=Mathematics">Mathematics</a></li>
+                    <li><a href="Controller?page=explore&category=Physics">Physics</a></li>
+                    <li><a href="Controller?page=explore&category=Chemistry">Chemistry</a></li>
+                    <li><a href="Controller?page=explore&category=Computer%20Science">Computer Science</a></li>
                 </ul>
-
             </div>
+
         </aside>
-    </div>
 
-    <!-- ===== NOTES GRID ===== -->
-    <div class="row mt-4">
+        <!-- ================= NOTES GRID ================= -->
+        <section class="col-md-9 col-lg-10">
 
-        <c:if test="${empty notes}">
-            <p class="text-muted text-center">
-                No notes found for this category or search.
-            </p>
-        </c:if>
+            <!-- SEARCH -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <form action="Controller" method="get" class="d-flex w-75">
+                    <input type="hidden" name="page" value="search">
+                    <input class="form-control me-2"
+                           name="q"
+                           placeholder="Search notes..."
+                           value="${keyword}">
+                    <button class="btn btn-primary">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </form>
+            </div>
 
-        <c:forEach var="n" items="${notes}">
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm">
+            <!-- NOTES -->
+            <div class="row g-4">
 
-                    <div class="card-body">
-                        <h5 class="card-title">${n.title}</h5>
+                <c:if test="${empty notes}">
+                    <p class="text-muted text-center">
+                        No notes found.
+                    </p>
+                </c:if>
 
-                        <p class="text-muted small mb-2">
-                            ${n.category}
-                        </p>
+                <c:forEach var="n" items="${notes}">
+                    <div class="col-md-6 col-lg-4 col-xl-3">
 
-                        <p class="card-text" style="min-height:60px;">
-                            ${n.description}
-                        </p>
+                        <div class="card note-card h-100 shadow-sm border-0">
 
-                        <p><strong>RM ${n.price}</strong></p>
+                            <!-- IMAGE -->
+                            <div class="note-thumb">
+                                <img src="${pageContext.request.contextPath}/${n.picture}"
+                                     onerror="this.src='${pageContext.request.contextPath}/assets/images/default.jpg'">
 
-                        <!-- ===== BUTTONS ROW ===== -->
-                        <div class="d-flex align-items-center gap-2 mt-2">
+                                <span class="badge badge-price ${n.price > 0 ? 'paid' : 'free'}">
+                                    ${n.price > 0 ? 'Paid' : 'Free'}
+                                </span>
+                            </div>
 
-                            <!-- 🛒 ADD TO CART -->
-                            <form action="Controller?page=addToCart" method="post" class="m-0">
-                                <input type="hidden" name="id" value="${n.noteId}">
-                                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
-                                    <i class="fa fa-cart-plus"></i> Add to Cart
-                                </button>
-                            </form>
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="fw-bold">${n.title}</h6>
 
-                            <!-- ❤️ FAVORITE -->
-                            <form action="Controller?page=addFavorite" method="post" class="m-0">
-                                <input type="hidden" name="id" value="${n.noteId}">
-                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
-                                    <i class="fa fa-heart"></i> Favorite
-                                </button>
-                            </form>
+                                <span class="note-category">${n.category}</span>
 
-                            <!-- ⬇ DOWNLOAD -->
-                            <a href="Controller?page=open_download&id=${n.noteId}"
-                               class="btn btn-primary btn-sm w-100">
-                                Download
-                            </a>
+                                <p class="text-muted small flex-grow-1">
+                                    ${fn:length(n.description) > 80
+                                        ? fn:substring(n.description,0,80).concat("...")
+                                        : n.description}
+                                </p>
+
+                                <div class="fw-bold mb-2">RM ${n.price}</div>
+
+                                <div class="d-flex gap-2 mt-auto">
+                                    <form action="Controller?page=addToCart" method="post">
+                                        <input type="hidden" name="id" value="${n.noteId}">
+                                        <button class="btn btn-outline-primary btn-sm">
+                                            <i class="fa fa-cart-plus"></i>
+                                        </button>
+                                    </form>
+
+                                    <form action="Controller?page=addFavorite" method="post">
+                                        <input type="hidden" name="id" value="${n.noteId}">
+                                        <button class="btn btn-outline-danger btn-sm">
+                                            <i class="fa fa-heart"></i>
+                                        </button>
+                                    </form>
+
+                                    <a href="Controller?page=open_download&id=${n.noteId}"
+                                       class="btn btn-primary btn-sm w-100">
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
 
                         </div>
-                    </div>
 
-                </div>
+                    </div>
+                </c:forEach>
+
             </div>
-        </c:forEach>
+
+        </section>
 
     </div>
 
 </main>
+
+
+     
 
 <!-- FOOTER -->
 <jsp:include page="components/footer.jsp" />
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</script>
+
 <c:if test="${not empty sessionScope.user}">
     
 <!-- Floating Button -->

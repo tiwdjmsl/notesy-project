@@ -8,7 +8,7 @@ import javax.json.*;
 public class GeminiChat {
 
     // 🔹 Put your API Key here
-    private static final String API_KEY = "AIzaSyCrW0o2hbOwffKzEk1hJovYsjDfhlzjjsc";
+    private static final String API_KEY = "YOUR_API_KEY_TOKEN";
 
     private static final String ENDPOINT =
         "https://generativelanguage.googleapis.com/v1/models/"
@@ -58,7 +58,11 @@ public class GeminiChat {
                         .add("parts", Json.createArrayBuilder()
                             .add(Json.createObjectBuilder()
                                 .add("text",
-                                    "You are Notesy Help Bot. Only answer questions "
+                                       "You are Notesy Help Bot. Only answer questions "
+                                   + "Recognize greetings such as hi, hello, hey, good morning, salam.\r\n"
+                                   + "If greeting → reply politely.\r\n"
+                                   + "Otherwise → answer normally."
+                                   + "never reject greetings"
                                   + "related to the Notesy website — notes, uploading, "
                                   + "buying, payments, cart, downloads, and accounts. "
                                   + "If the question is unrelated, reply exactly with: "
