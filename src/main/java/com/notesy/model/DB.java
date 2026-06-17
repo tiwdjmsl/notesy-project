@@ -8,8 +8,8 @@ import java.util.List;
 public class DB {
 
     private String url = "jdbc:mysql://localhost:3306/notesy_db";
-    private String user = "root";
-    private String pass = "kali";
+    private String user = "****";
+    private String pass = "****";
     private Connection con;
 
     
